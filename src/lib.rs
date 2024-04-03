@@ -237,6 +237,34 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
     pub fn get_duration(&self) -> std::time::Duration {
         std::time::Duration::from_secs_f32(self.header.frame_count as f32 / self.header.fps)
     }
+
+    pub fn get_width(&self) -> u32 {
+        self.header.width
+    }
+
+    pub fn get_height(&self) -> u32 {
+        self.header.height
+    }
+
+    pub fn get_size(&self) -> (u32, u32) {
+        (self.header.width, self.header.height)
+    }
+
+    pub fn get_frame_count(&self) -> u32 {
+        self.header.frame_count
+    }
+
+    pub fn get_fps(&self) -> f32 {
+        self.header.fps
+    }
+
+    pub fn get_format(&self) -> GVFormat {
+        self.header.format
+    }
+
+    pub fn get_frame_bytes(&self) -> u32 {
+        self.header.frame_bytes
+    }
 }
 
 #[cfg(test)]
