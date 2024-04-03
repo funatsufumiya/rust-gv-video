@@ -105,6 +105,19 @@ pub fn get_rgba_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
     result
 }
 
+/// Vec<u32>'s u32 is showing ARGB as little endian, this convert it to RGB u8
+/// ex: [0xFFAABBCC, 0xFFDDEE88] -> [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x88]
+pub fn get_rgb_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    // FIXME: more efficient way?
+    let mut result = Vec::with_capacity(frame.len() * 3);
+    for color in frame {
+        result.push((color >> 16) as u8);
+        result.push((color >> 8) as u8);
+        result.push((color >> 0) as u8);
+    }
+    result
+}
+
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
     let width = reader.read_u32::<LittleEndian>().unwrap();
     let height = reader.read_u32::<LittleEndian>().unwrap();
