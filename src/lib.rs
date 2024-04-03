@@ -12,7 +12,7 @@
 // eof - (frame count) * 16: [(uint64_t, uint64_t)..<frame count] (address, size) of lz4, address is zero based from file head
 //
 
-use std::io::{Read, Seek};
+use std::{fs::File, io::{BufReader, Read, Seek}};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use texture2ddecoder;
@@ -149,6 +149,12 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
             header,
             reader,
         }
+    }
+
+    pub fn load_from_file(file_path: &str) -> GVVideo<BufReader<File>> {
+        let file = File::open(file_path).unwrap();
+        let reader = BufReader::new(file);
+        GVVideo::load(reader)
     }
 
     fn decode_dxt(&mut self, data: Vec<u8>) -> Vec<u32> {

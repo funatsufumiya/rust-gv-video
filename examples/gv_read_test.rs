@@ -10,6 +10,9 @@ fn main() {
         // load video
         let mut video = GVVideo::load(&mut reader);
 
+        // or, simply use load_from_file
+        // let mut video = GVVideo::load_from_file("test_asset/test-10px.gv").unwrap();
+
         assert_eq!(video.header.width, 10);
         assert_eq!(video.header.height, 10);
         assert_eq!(video.header.frame_count, 5);
