@@ -205,6 +205,8 @@ mod tests {
 
     // SMPTE BAR
     const TEST_GV: &[u8; 1547] = include_bytes!("../test_asset/test.gv");
+    // SMPTE BAR with alpha gradient
+    const TEST_ALPHA_GV: &[u8; 4857] = include_bytes!("../test_asset/test-alpha.gv");
 
     #[test]
     fn header_read() {
@@ -298,5 +300,48 @@ mod tests {
         let frame = video.read_frame(1);
         assert!(frame.is_err());
         assert_eq!(frame.err(), Some("End of video"));
+    }
+
+    #[test]
+    fn check_alpha() {
+        let data = TEST_ALPHA_GV;
+        let mut reader = Cursor::new(data);
+        let mut video = GVVideo::load(&mut reader);
+        let frame = video.read_frame(0).unwrap();
+
+        // rgba: 189, 190, 189, 255
+        assert_eq!(frame[0], 0xFFBDBEBD);
+        // rgba: 192, 190, 0, 228
+        assert_eq!(frame[130], 0xE4C0BE00);
+        // rgba: 0, 188, 0, 130
+        assert_eq!(frame[320], 0x8200BC00);
+        // rgba: 0, 0, 192, 0
+        assert_eq!(frame[595], 0x000000C0);
+
+        // x, y = 160, 300 | rgba: 255, 255, 255, 212
+        assert_eq!(frame[160 + 300 * 640], 0xD4FFFFFF);
+
+        // x, y = 300, 300 | rgba: 62, 0, 118, 140
+        assert_eq!(frame[300 + 300 * 640], 0x8C3E0076);
+
+        assert_eq!(get_rgba(frame[0]), RGBAColor { r: 189, g: 190, b: 189, a: 255 });
+        assert_eq!(get_rgb(frame[0]), RGBColor { r: 189, g: 190, b: 189 });
+        assert_eq!(get_alpha(frame[0]), 0xFF);
+
+        assert_eq!(get_rgba(frame[130]), RGBAColor { r: 192, g: 190, b: 0, a: 228 });
+        assert_eq!(get_rgb(frame[130]), RGBColor { r: 192, g: 190, b: 0 });
+        assert_eq!(get_alpha(frame[130]), 0xE4);
+
+        assert_eq!(get_rgba(frame[320]), RGBAColor { r: 0, g: 188, b: 0, a: 130 });
+        assert_eq!(get_rgb(frame[320]), RGBColor { r: 0, g: 188, b: 0 });
+        assert_eq!(get_alpha(frame[320]), 0x82);
+
+        assert_eq!(get_rgba(frame[595]), RGBAColor { r: 0, g: 0, b: 192, a: 0 });
+        assert_eq!(get_rgb(frame[595]), RGBColor { r: 0, g: 0, b: 192 });
+        assert_eq!(get_alpha(frame[595]), 0x00);
+
+        assert_eq!(get_rgba(frame[160 + 300 * 640]), RGBAColor { r: 255, g: 255, b: 255, a: 212 });
+
+        assert_eq!(get_rgba(frame[300 + 300 * 640]), RGBAColor { r: 62, g: 0, b: 118, a: 140 });
     }
 }
