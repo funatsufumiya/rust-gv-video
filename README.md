@@ -1,4 +1,4 @@
-# GV Decoder for Rust
+# GV Video Decoder for Rust
 
 Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/ofxExtremeGpuVideo decoder to Rust.
 
