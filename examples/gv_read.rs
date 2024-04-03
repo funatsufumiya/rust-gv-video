@@ -1,4 +1,4 @@
-use rust_gv_video::gv_video::{get_rgba_from_frame, GVFormat, GVVideo, RGBAColor};
+use gv_video::{get_rgba_from_frame, GVFormat, GVVideo, RGBAColor};
 use std::{fs::File, io::BufReader};
 
 fn main() {

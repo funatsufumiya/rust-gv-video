@@ -9,6 +9,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
+name = "gv_video"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "lz4_flex",
+ "texture2ddecoder",
+]
+
+[[package]]
 name = "lz4_flex"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19,15 +28,6 @@ name = "paste"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
-
-[[package]]
-name = "rust-gv-video"
-version = "0.1.0"
-dependencies = [
- "byteorder",
- "lz4_flex",
- "texture2ddecoder",
-]
 
 [[package]]
 name = "texture2ddecoder"

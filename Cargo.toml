@@ -1,5 +1,5 @@
 [package]
-name = "rust-gv-video"
+name = "gv_video"
 version = "0.1.0"
 edition = "2021"
 
