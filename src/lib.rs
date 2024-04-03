@@ -91,6 +91,20 @@ pub fn get_alpha_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) 
     get_alpha(frame[x + y * width])
 }
 
+/// Vec<u32>'s u32 is showing ARGB as little endian, this convert it to RGBA u8
+/// ex: [0xFFAABBCC, 0xFFDDEE88] -> [0xAA, 0xBB, 0xCC, 0xFF, 0xDD, 0xEE, 0x88, 0xFF]
+pub fn get_rgba_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    // FIXME: more efficient way?
+    let mut result = Vec::with_capacity(frame.len() * 4);
+    for color in frame {
+        result.push((color >> 16) as u8);
+        result.push((color >> 8) as u8);
+        result.push((color >> 0) as u8);
+        result.push((color >> 24) as u8);
+    }
+    result
+}
+
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
     let width = reader.read_u32::<LittleEndian>().unwrap();
     let height = reader.read_u32::<LittleEndian>().unwrap();
@@ -419,5 +433,12 @@ mod tests {
         let frame = video.read_frame_at(std::time::Duration::from_secs_f32(5.01));
         assert!(frame.is_err());
         assert_eq!(frame.err(), Some("End of video"));
+    }
+
+    #[test]
+    fn rgba_vec() {
+        let test_vec = vec![0xFFAABBCC, 0xFFDDEE88];
+        let result = get_rgba_vec_from_frame(&test_vec);
+        assert_eq!(result, vec![0xAA, 0xBB, 0xCC, 0xFF, 0xDD, 0xEE, 0x88, 0xFF]);
     }
 }
