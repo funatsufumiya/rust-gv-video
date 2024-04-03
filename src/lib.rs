@@ -91,6 +91,42 @@ pub fn get_alpha_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) 
     get_alpha(frame[x + y * width])
 }
 
+pub fn get_reds_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    let mut result = Vec::with_capacity(frame.len());
+    // FIXME: more efficient way?
+    for i in 0..frame.len() {
+        result.push((frame[i] >> 16) as u8);
+    }
+    result
+}
+
+pub fn get_greens_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    let mut result = Vec::with_capacity(frame.len());
+    // FIXME: more efficient way?
+    for i in 0..frame.len() {
+        result.push((frame[i] >> 8) as u8);
+    }
+    result
+}
+
+pub fn get_blues_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    let mut result = Vec::with_capacity(frame.len());
+    // FIXME: more efficient way?
+    for i in 0..frame.len() {
+        result.push((frame[i]) as u8);
+    }
+    result
+}
+
+pub fn get_alphas_from_frame(frame: &Vec<u32>) -> Vec<u8> {
+    let mut result = Vec::with_capacity(frame.len());
+    // FIXME: more efficient way?
+    for i in 0..frame.len() {
+        result.push((frame[i] >> 24) as u8);
+    }
+    result
+}
+
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
     let width = reader.read_u32::<LittleEndian>().unwrap();
     let height = reader.read_u32::<LittleEndian>().unwrap();
