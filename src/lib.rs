@@ -12,6 +12,8 @@
 // eof - (frame count) * 16: [(uint64_t, uint64_t)..<frame count] (address, size) of lz4, address is zero based from file head
 //
 
+use std::io::{Read, Seek};
+
 use byteorder::{LittleEndian, ReadBytesExt};
 use texture2ddecoder;
 
@@ -34,7 +36,7 @@ pub struct GVHeader {
     pub frame_bytes: u32,
 }
 
-pub struct GVVideo<Reader> {
+pub struct GVVideo<Reader: Read + Seek> {
     pub header: GVHeader,
     pub reader: Reader,
 }
@@ -110,7 +112,7 @@ pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::i
     }
 }
 
-impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
+impl<Reader: Read + Seek> GVVideo<Reader> {
     pub fn load(reader: Reader) -> GVVideo<Reader> {
         let mut reader = reader;
         let header = read_header(&mut reader);
