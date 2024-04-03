@@ -169,8 +169,6 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
             return Err("End of video");
         }
 
-        // f.seek(-frame_count * 16 + i * 16, os.SEEK_END)
-
         // println!("frame_id: {}", frame_id);
         // println!("debug: {}", -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16));
         
