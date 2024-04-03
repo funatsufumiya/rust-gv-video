@@ -1,6 +1,6 @@
-# Extreme Gpu Friendly Video Format for Rust
+# GV Decoder for Rust
 
-Port of the video decoder of https://github.com/Ushio/ofxExtremeGpuVideo to Rust.
+Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/ofxExtremeGpuVideo decoder to Rust.
 
 ## binary file format (gv)
 
