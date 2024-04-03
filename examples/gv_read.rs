@@ -43,12 +43,12 @@ fn main() {
         assert_eq!(rgba, RGBAColor { r: 255, g: 0, b: 0, a: 255 });
 
         // you can convert frame to Vec<u8> ( [R,G,B,A,R,G,B,A,...] )
-        let rgba_vec = get_rgba_vec_from_frame(&frame);
-        assert_eq!(rgba_vec.len(), w * h * 4);
-        assert_eq!(rgba_vec[0], 255); // R
-        assert_eq!(rgba_vec[1], 0); // G
-        assert_eq!(rgba_vec[2], 0); // B
-        assert_eq!(rgba_vec[3], 255); // A
+        let frame_u8 = get_rgba_vec_from_frame(&frame);
+        assert_eq!(frame_u8.len(), w * h * 4);
+        assert_eq!(frame_u8[0], 255); // R
+        assert_eq!(frame_u8[1], 0); // G
+        assert_eq!(frame_u8[2], 0); // B
+        assert_eq!(frame_u8[3], 255); // A
 
         println!("All tests passed");
 }
