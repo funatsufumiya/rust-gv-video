@@ -2,9 +2,6 @@ use rust_gv_video::gv_video::{get_rgba_from_frame, GVFormat, GVVideo, RGBAColor}
 use std::{fs::File, io::BufReader};
 
 fn main() {
-        // const TEST_10PX_GV: &[u8; 474] = include_bytes!("../test_asset/test-10px.gv");
-
-        // read file using bytereader and file
         let file = File::open("test_asset/test-10px.gv").unwrap();
         let mut reader = BufReader::new(file);
 
