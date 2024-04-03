@@ -54,15 +54,6 @@ pub struct RGBColor {
     pub b: u8,
 }
 
-// hint: python
-// dec_img = Image.frombytes("RGBA", (width, height), decoded_data, 'raw', ("BGRA"))
-
-// hint2: rust
-// #[inline]
-// pub const fn color(r: u8, g: u8, b: u8, a: u8) -> u32 {
-//     u32::from_le_bytes([b, g, r, a])
-// }
-
 pub fn get_rgba(color: u32) -> RGBAColor {
     RGBAColor {
         r: (color >> 16) as u8,
