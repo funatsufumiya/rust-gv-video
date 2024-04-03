@@ -187,7 +187,6 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
             // println!("size: {}", size);
             
             let mut data = vec![0; size];
-            // let mut data = vec![0; (size * 4) as usize];
 
             if let Err(_) = self.reader.seek(std::io::SeekFrom::Start(address)) {
                 return Err("Error seeking frame data");
