@@ -27,6 +27,7 @@ pub enum GVFormat {
 
 // const HEADER_SIZE: usize = 24;
 
+#[derive(Debug)]
 pub struct GVHeader {
     pub width: u32,
     pub height: u32,
@@ -36,6 +37,7 @@ pub struct GVHeader {
     pub frame_bytes: u32,
 }
 
+#[derive(Debug)]
 pub struct GVVideo<Reader: Read + Seek> {
     pub header: GVHeader,
     pub reader: Reader,
