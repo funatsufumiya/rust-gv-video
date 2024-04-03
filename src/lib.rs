@@ -142,9 +142,10 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         let width = self.header.width as usize;
         let height = self.header.height as usize;
         let format = self.header.format;
-        let uncompressed_size = (width * height * 4) as usize;
-        let lz4_decoded_data = lz4_flex::block::decompress(&data, uncompressed_size).unwrap();
-        let mut result = vec![0; uncompressed_size];
+        let uncompressed_size_u8 = (width * height * 4) as usize;
+        let uncompressed_size_u32 = (width * height) as usize;
+        let lz4_decoded_data = lz4_flex::block::decompress(&data, uncompressed_size_u8).unwrap();
+        let mut result = vec![0; uncompressed_size_u32];
 
         match format {
             GVFormat::DXT1 => {
@@ -276,7 +277,7 @@ mod tests {
         let mut reader = Cursor::new(data);
         let mut video = GVVideo::load(&mut reader);
         let frame = video.read_frame(0).unwrap();
-        assert_eq!(frame.len(), 640 * 360 * 4);
+        assert_eq!(frame.len(), 640 * 360);
     }
 
     #[test]
@@ -380,7 +381,7 @@ mod tests {
         let mut reader = Cursor::new(data);
         let mut video = GVVideo::load(&mut reader);
         let frame = video.read_frame_at(std::time::Duration::from_secs_f32(0.0)).unwrap();
-        assert_eq!(frame.len(), 640 * 360 * 4);
+        assert_eq!(frame.len(), 640 * 360);
     }
 
     #[test]
@@ -423,11 +424,11 @@ mod tests {
         assert_eq!(video.get_duration(), std::time::Duration::from_secs_f32(5.0));
 
         let frame = video.read_frame_at(std::time::Duration::from_secs_f32(3.5)).unwrap();
-        assert_eq!(frame.len(), 10 * 10 * 4);
+        assert_eq!(frame.len(), 10 * 10);
 
         // 4.99 sec
         let frame = video.read_frame_at(std::time::Duration::from_secs_f32(4.99)).unwrap();
-        assert_eq!(frame.len(), 10 * 10 * 4);
+        assert_eq!(frame.len(), 10 * 10);
 
         // 5.01 sec is out of range
         let frame = video.read_frame_at(std::time::Duration::from_secs_f32(5.01));
