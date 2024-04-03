@@ -196,6 +196,15 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
             Ok(self.decode_dxt(data))
         }
     }
+
+    pub fn read_frame_at(&mut self, duration: std::time::Duration) -> Result<Vec<u32>, &'static str> {
+        let frame_id = (self.header.fps * duration.as_secs_f32()) as u32;
+        self.read_frame(frame_id)
+    }
+
+    pub fn get_duration(&self) -> std::time::Duration {
+        std::time::Duration::from_secs_f32(self.header.frame_count as f32 / self.header.fps)
+    }
 }
 
 #[cfg(test)]
@@ -207,6 +216,8 @@ mod tests {
     const TEST_GV: &[u8; 1547] = include_bytes!("../test_asset/test.gv");
     // SMPTE BAR with alpha gradient
     const TEST_ALPHA_GV: &[u8; 4857] = include_bytes!("../test_asset/test-alpha.gv");
+    // 10px 5sec 1fps
+    const TEST_10PX_GV: &[u8; 474] = include_bytes!("../test_asset/test-10px.gv");
 
     #[test]
     fn header_read() {
@@ -343,5 +354,66 @@ mod tests {
         assert_eq!(get_rgba(frame[160 + 300 * 640]), RGBAColor { r: 255, g: 255, b: 255, a: 212 });
 
         assert_eq!(get_rgba(frame[300 + 300 * 640]), RGBAColor { r: 62, g: 0, b: 118, a: 140 });
+    }
+
+    #[test]
+    fn read_frame_at() {
+        let data = TEST_GV;
+        let mut reader = Cursor::new(data);
+        let mut video = GVVideo::load(&mut reader);
+        let frame = video.read_frame_at(std::time::Duration::from_secs_f32(0.0)).unwrap();
+        assert_eq!(frame.len(), 640 * 360 * 4);
+    }
+
+    #[test]
+    fn read_frame_at_with_error() {
+        let data = TEST_GV;
+        let mut reader = Cursor::new(data);
+        let mut video = GVVideo::load(&mut reader);
+        let frame = video.read_frame_at(std::time::Duration::from_secs_f32(1.0));
+        assert!(frame.is_err());
+        assert_eq!(frame.err(), Some("End of video"));
+    }
+
+    #[test]
+    fn check_duration1() {
+        let data = TEST_GV;
+        let mut reader = Cursor::new(data);
+        let video = GVVideo::load(&mut reader);
+        assert_eq!(video.get_duration(), std::time::Duration::from_secs_f32(1.0 / 30.0));
+    }
+
+    #[test]
+    fn check_duration2() {
+        let data = TEST_10PX_GV;
+        let mut reader = Cursor::new(data);
+        let video = GVVideo::load(&mut reader);
+        assert_eq!(video.get_duration(), std::time::Duration::from_secs_f32(5.0));
+    }
+
+    #[test]
+    fn read_frame_at_3_5() {
+        let data = TEST_10PX_GV;
+        let mut reader = Cursor::new(data);
+        let mut video = GVVideo::load(&mut reader);
+        assert_eq!(video.header.width, 10);
+        assert_eq!(video.header.height, 10);
+        assert_eq!(video.header.frame_count, 5);
+        assert_eq!(video.header.fps, 1.0);
+        assert_eq!(video.header.format, Format::DXT1);
+        assert_eq!(video.header.frame_bytes, 72);
+        assert_eq!(video.get_duration(), std::time::Duration::from_secs_f32(5.0));
+
+        let frame = video.read_frame_at(std::time::Duration::from_secs_f32(3.5)).unwrap();
+        assert_eq!(frame.len(), 10 * 10 * 4);
+
+        // 4.99 sec
+        let frame = video.read_frame_at(std::time::Duration::from_secs_f32(4.99)).unwrap();
+        assert_eq!(frame.len(), 10 * 10 * 4);
+
+        // 5.01 sec is out of range
+        let frame = video.read_frame_at(std::time::Duration::from_secs_f32(5.01));
+        assert!(frame.is_err());
+        assert_eq!(frame.err(), Some("End of video"));
     }
 }
