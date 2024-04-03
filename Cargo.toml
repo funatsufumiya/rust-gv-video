@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 byteorder = "1.5.0"
+lz4_flex = { version = "0.11", default-features = false }
+# texture2ddecoder = { version = "0.0.5" }
+texture2ddecoder = { git = "https://github.com/autergame/texture2ddecoder", version = "0.0.6" }

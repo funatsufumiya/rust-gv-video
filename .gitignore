@@ -1,2 +1,4 @@
 /target
 test.gv
+/test_asset/*
+!/test_asset/.gitkeep
