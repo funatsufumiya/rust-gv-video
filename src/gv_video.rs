@@ -16,7 +16,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use texture2ddecoder;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Format {
+pub enum GVFormat {
     DXT1 = 1,
     DXT3 = 3,
     DXT5 = 5,
@@ -25,17 +25,17 @@ pub enum Format {
 
 // const HEADER_SIZE: usize = 24;
 
-pub struct Header {
+pub struct GVHeader {
     pub width: u32,
     pub height: u32,
     pub frame_count: u32,
     pub fps: f32,
-    pub format: Format,
+    pub format: GVFormat,
     pub frame_bytes: u32,
 }
 
 pub struct GVVideo<Reader> {
-    pub header: Header,
+    pub header: GVHeader,
     pub reader: Reader,
 }
 
@@ -84,23 +84,35 @@ pub fn get_alpha(color: u32) -> u8 {
     (color >> 24) as u8
 }
 
-pub fn read_header<Reader>(reader: &mut Reader) -> Header where Reader: std::io::Read {
+pub fn get_rgba_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) -> RGBAColor {
+    get_rgba(frame[x + y * width])
+}
+
+pub fn get_rgb_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) -> RGBColor {
+    get_rgb(frame[x + y * width])
+}
+
+pub fn get_alpha_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) -> u8 {
+    get_alpha(frame[x + y * width])
+}
+
+pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
     let width = reader.read_u32::<LittleEndian>().unwrap();
     let height = reader.read_u32::<LittleEndian>().unwrap();
     let frame_count = reader.read_u32::<LittleEndian>().unwrap();
     let fps = reader.read_f32::<LittleEndian>().unwrap();
     let format = reader.read_u32::<LittleEndian>().unwrap();
     let frame_bytes = reader.read_u32::<LittleEndian>().unwrap();
-    Header {
+    GVHeader {
         width,
         height,
         frame_count,
         fps,
         format: match format {
-            1 => Format::DXT1,
-            3 => Format::DXT3,
-            5 => Format::DXT5,
-            7 => Format::BC7,
+            1 => GVFormat::DXT1,
+            3 => GVFormat::DXT3,
+            5 => GVFormat::DXT5,
+            7 => GVFormat::BC7,
             _ => panic!("Unknown format"),
         },
         frame_bytes,
@@ -126,7 +138,7 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
         let mut result = vec![0; uncompressed_size];
 
         match format {
-            Format::DXT1 => {
+            GVFormat::DXT1 => {
                 let res = texture2ddecoder::decode_bc1(&lz4_decoded_data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding DXT1: {:?}", res.err().unwrap());
@@ -134,7 +146,7 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
                     result
                 }
             }
-            Format::DXT3 => {
+            GVFormat::DXT3 => {
                 let res = texture2ddecoder::decode_bc2(&lz4_decoded_data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding DXT3: {:?}", res.err().unwrap());
@@ -142,7 +154,7 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
                     result
                 }
             }
-            Format::DXT5 => {
+            GVFormat::DXT5 => {
                 let res = texture2ddecoder::decode_bc3(&lz4_decoded_data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding DXT5: {:?}", res.err().unwrap());
@@ -150,7 +162,7 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
                     result
                 }
             }
-            Format::BC7 => {
+            GVFormat::BC7 => {
                 let res = texture2ddecoder::decode_bc7(&lz4_decoded_data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding BC7: {:?}", res.err().unwrap());
@@ -168,8 +180,8 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
 
         // f.seek(-frame_count * 16 + i * 16, os.SEEK_END)
 
-        println!("frame_id: {}", frame_id);
-        println!("debug: {}", -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16));
+        // println!("frame_id: {}", frame_id);
+        // println!("debug: {}", -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16));
         
         self.reader.seek(std::io::SeekFrom::End(
             -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16))
@@ -180,8 +192,8 @@ impl<Reader: std::io::Read + std::io::Seek> GVVideo<Reader> {
         if address == 0 || size == 0 {
             return Err("Error reading frame address or size");
         }else{
-            println!("address: {}", address);
-            println!("size: {}", size);
+            // println!("address: {}", address);
+            // println!("size: {}", size);
             
             let mut data = vec![0; size];
             // let mut data = vec![0; (size * 4) as usize];
@@ -235,7 +247,7 @@ mod tests {
         assert_eq!(video.header.height, 2);
         assert_eq!(video.header.frame_count, 2);
         assert_eq!(video.header.fps, 1.0);
-        assert_eq!(video.header.format, Format::DXT1);
+        assert_eq!(video.header.format, GVFormat::DXT1);
         assert_eq!(video.header.frame_bytes, 4);
     }
 
@@ -248,7 +260,7 @@ mod tests {
         assert_eq!(video.header.height, 360);
         assert_eq!(video.header.frame_count, 1);
         assert_eq!(video.header.fps, 30.0);
-        assert_eq!(video.header.format, Format::DXT1);
+        assert_eq!(video.header.format, GVFormat::DXT1);
         assert_eq!(video.header.frame_bytes, 115200);
     }
 
@@ -400,7 +412,7 @@ mod tests {
         assert_eq!(video.header.height, 10);
         assert_eq!(video.header.frame_count, 5);
         assert_eq!(video.header.fps, 1.0);
-        assert_eq!(video.header.format, Format::DXT1);
+        assert_eq!(video.header.format, GVFormat::DXT1);
         assert_eq!(video.header.frame_bytes, 72);
         assert_eq!(video.get_duration(), std::time::Duration::from_secs_f32(5.0));
 
