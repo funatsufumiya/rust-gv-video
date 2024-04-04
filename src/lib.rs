@@ -142,8 +142,7 @@ pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::i
 }
 
 impl<Reader: Read + Seek> GVVideo<Reader> {
-    pub fn load(reader: Reader) -> GVVideo<Reader> {
-        let mut reader = reader;
+    pub fn load(mut reader: Reader) -> GVVideo<Reader> {
         let header = read_header(&mut reader);
         GVVideo {
             header,
