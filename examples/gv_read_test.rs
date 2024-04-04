@@ -1,4 +1,4 @@
-use gv_video::{get_rgb_vec_from_frame, get_rgba_from_frame, get_rgba_vec_from_frame, GVFormat, GVVideo, RGBAColor};
+use gv_video::{get_bgra_vec_from_frame, get_rgb_vec_from_frame, get_rgba_from_frame, get_rgba_vec_from_frame, GVFormat, GVVideo, RGBAColor};
 use std::{fs::File, io::BufReader};
 
 fn main() {
@@ -50,7 +50,12 @@ fn main() {
         let rgba = get_rgba_from_frame(&frame, 0, 0, w);
         assert_eq!(rgba, RGBAColor { r: 255, g: 0, b: 0, a: 255 });
 
+        // convert frame to Vec<u8> BGRA ( [B,G,R,A,B,G,R,A,...] )
+        // this is fastest way to get frame data as Vec<u8>
+        // let frame_u8 = get_bgra_vec_from_frame(frame);
+
         // convert frame to Vec<u8> RGBA ( [R,G,B,A,R,G,B,A,...] )
+        // this is slower than direct BGRA conversion
         let frame_u8 = get_rgba_vec_from_frame(&frame);
         assert_eq!(frame_u8.len(), w * h * 4);
         assert_eq!(frame_u8[0], 255); // R
@@ -59,6 +64,7 @@ fn main() {
         assert_eq!(frame_u8[3], 255); // A
 
         // convert frame to Vec<u8> RGB ( [R,G,B,R,G,B,...] )
+        // this is slower than direct BGRA conversion
         let frame_u8_rgb = get_rgb_vec_from_frame(&frame);
         assert_eq!(frame_u8_rgb.len(), w * h * 3);
         assert_eq!(frame_u8_rgb[0], 255); // R
