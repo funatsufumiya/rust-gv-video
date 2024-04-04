@@ -362,11 +362,13 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         Ok(self.decode_lz4(data))
     }
 
+    /// decompress lz4 block and decode dxt, then return decompressed frame data (BGRA u32), at specified time
     pub fn read_frame_at(&mut self, duration: std::time::Duration) -> Result<Vec<u32>, &'static str> {
         let frame_id = (self.header.fps * duration.as_secs_f32()) as u32;
         self.read_frame(frame_id)
     }
 
+    /// decompress lz4 block, then return compressed frame data (BC1, BC2, BC3, BC7), at specified time
     pub fn read_frame_compressed_at(&mut self, duration: std::time::Duration) -> Result<Vec<u8>, &'static str> {
         let frame_id = (self.header.fps * duration.as_secs_f32()) as u32;
         self.read_frame_compressed(frame_id)
