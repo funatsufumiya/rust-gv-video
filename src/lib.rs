@@ -215,7 +215,59 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         address_size_blocks
     }
 
-    fn decode_dxt(&mut self, data: Vec<u8>) -> Vec<u32> {
+    fn decode_lz4(&mut self, data: Vec<u8>) -> Vec<u8> {
+        let width = self.header.width as usize;
+        let height = self.header.height as usize;
+        let uncompressed_size = (width * height * 4) as usize;
+        let lz4_decoded_data = lz4_flex::block::decompress(&data, uncompressed_size).unwrap();
+        lz4_decoded_data
+    }
+
+    /// only for testing
+    fn _decode_dxt(&mut self, data: Vec<u8>) -> Vec<u32> {
+        let width = self.header.width as usize;
+        let height = self.header.height as usize;
+        let format = self.header.format;
+        let uncompressed_size_u32 = (width * height) as usize;
+        let mut result = vec![0; uncompressed_size_u32];
+
+        match format {
+            GVFormat::DXT1 => {
+                let res = texture2ddecoder::decode_bc1(&data, width, height, &mut result);
+                if res.is_err() {
+                    panic!("Error decoding DXT1: {:?}", res.err().unwrap());
+                }else{
+                    result
+                }
+            }
+            GVFormat::DXT3 => {
+                let res = texture2ddecoder::decode_bc2(&data, width, height, &mut result);
+                if res.is_err() {
+                    panic!("Error decoding DXT3: {:?}", res.err().unwrap());
+                }else{
+                    result
+                }
+            }
+            GVFormat::DXT5 => {
+                let res = texture2ddecoder::decode_bc3(&data, width, height, &mut result);
+                if res.is_err() {
+                    panic!("Error decoding DXT5: {:?}", res.err().unwrap());
+                }else{
+                    result
+                }
+            }
+            GVFormat::BC7 => {
+                let res = texture2ddecoder::decode_bc7(&data, width, height, &mut result);
+                if res.is_err() {
+                    panic!("Error decoding BC7: {:?}", res.err().unwrap());
+                }else{
+                    result
+                }
+            }
+        }
+    }
+
+    fn decode_lz4_and_dxt(&mut self, data: Vec<u8>) -> Vec<u32> {
         let width = self.header.width as usize;
         let height = self.header.height as usize;
         let format = self.header.format;
@@ -260,6 +312,7 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         }
     }
 
+    /// decompress lz4 block and decode dxt, then return decompressed frame data (BGRA u32)
     pub fn read_frame(&mut self, frame_id: u32) -> Result<Vec<u32>, &'static str> {
         if frame_id >= self.header.frame_count {
             return Err("End of video");
@@ -284,12 +337,39 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
             return Err("Error reading frame data");
         }
 
-        Ok(self.decode_dxt(data))
+        Ok(self.decode_lz4_and_dxt(data))
+    }
+
+    /// decompress lz4 block, then return compressed frame data (BC1, BC2, BC3, BC7)
+    pub fn read_frame_compressed(&mut self, frame_id: u32) -> Result<Vec<u8>, &'static str> {
+        if frame_id >= self.header.frame_count {
+            return Err("End of video");
+        }
+
+        let block = self.address_size_blocks[frame_id as usize];
+        let address = block.address;
+        let size = block.size as usize;
+        
+        let mut data = vec![0; size];
+
+        if let Err(_) = self.reader.seek(std::io::SeekFrom::Start(address)) {
+            return Err("Error seeking frame data");
+        }
+        if let Err(_) = self.reader.read_exact(&mut data) {
+            return Err("Error reading frame data");
+        }
+
+        Ok(self.decode_lz4(data))
     }
 
     pub fn read_frame_at(&mut self, duration: std::time::Duration) -> Result<Vec<u32>, &'static str> {
         let frame_id = (self.header.fps * duration.as_secs_f32()) as u32;
         self.read_frame(frame_id)
+    }
+
+    pub fn read_frame_compressed_at(&mut self, duration: std::time::Duration) -> Result<Vec<u8>, &'static str> {
+        let frame_id = (self.header.fps * duration.as_secs_f32()) as u32;
+        self.read_frame_compressed(frame_id)
     }
 
     pub fn get_duration(&self) -> std::time::Duration {
@@ -394,6 +474,20 @@ mod tests {
         let mut video = GVVideo::load(&mut reader);
         let frame = video.read_frame(0).unwrap();
         assert_eq!(frame.len(), 640 * 360);
+    }
+
+    #[test]
+    fn read_first_frame_compressed() {
+        let data = TEST_GV;
+        let mut reader = Cursor::new(data);
+        let mut video = GVVideo::load(&mut reader);
+        let frame_bc = video.read_frame_compressed(0).unwrap();
+        let frame_raw_right = video.read_frame(0).unwrap();
+        let frame_raw = video._decode_dxt(frame_bc);
+
+        assert_eq!(frame_raw.len(), 640 * 360);
+        assert_eq!(frame_raw.len(), frame_raw_right.len());
+        assert_eq!(frame_raw, frame_raw_right);
     }
 
     #[test]
