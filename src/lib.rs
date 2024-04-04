@@ -37,9 +37,16 @@ pub struct GVHeader {
     pub frame_bytes: u32,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct GVAddressSizeBlock {
+    pub address: u64,
+    pub size: u64,
+}
+
 #[derive(Debug)]
 pub struct GVVideo<Reader: Read + Seek> {
     pub header: GVHeader,
+    pub address_size_blocks: Vec<GVAddressSizeBlock>,
     pub reader: Reader,
 }
 
@@ -171,8 +178,10 @@ pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::i
 impl<Reader: Read + Seek> GVVideo<Reader> {
     pub fn load(mut reader: Reader) -> GVVideo<Reader> {
         let header = read_header(&mut reader);
+        let address_size_blocks = GVVideo::get_address_size_blocks(header.frame_count, reader.by_ref());
         GVVideo {
             header,
+            address_size_blocks,
             reader,
         }
     }
@@ -181,6 +190,29 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         let file = File::open(file_path).unwrap();
         let reader = BufReader::new(file);
         GVVideo::load(reader)
+    }
+
+    fn get_address_size_blocks(frame_count: u32, mut reader: Reader) -> Vec<GVAddressSizeBlock> {
+        let mut address_size_blocks = Vec::new();
+
+        // println!("frame_count: {}", frame_count);
+        // println!("seek: {}", -((frame_count * 16) as i64));
+
+        // seek to top of address_size_blocks
+        reader.seek(std::io::SeekFrom::End(
+            -((frame_count * 16) as i64)
+        )).unwrap();
+        for _ in 0..frame_count {
+            let address = reader.read_u64::<LittleEndian>().unwrap();
+            let size = reader.read_u64::<LittleEndian>().unwrap();
+            address_size_blocks.push(GVAddressSizeBlock { address, size });
+        }
+        // seek to first frame
+        if frame_count > 0 {
+            let address = address_size_blocks[0].address;
+            let _ = reader.seek(std::io::SeekFrom::Start(address));
+        }
+        address_size_blocks
     }
 
     fn decode_dxt(&mut self, data: Vec<u8>) -> Vec<u32> {
@@ -235,30 +267,24 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
 
         // println!("frame_id: {}", frame_id);
         // println!("debug: {}", -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16));
+
+        let block = self.address_size_blocks[frame_id as usize];
+        let address = block.address;
+        let size = block.size as usize;
         
-        self.reader.seek(std::io::SeekFrom::End(
-            -((self.header.frame_count * 16) as i64) + (frame_id as i64 * 16))
-        ).unwrap();
+        // println!("address: {}", address);
+        // println!("size: {}", size);
+        
+        let mut data = vec![0; size];
 
-        let address = self.reader.read_u64::<LittleEndian>().unwrap_or(0);
-        let size = self.reader.read_u64::<LittleEndian>().unwrap_or(0) as usize;
-        if address == 0 || size == 0 {
-            return Err("Error reading frame address or size");
-        }else{
-            // println!("address: {}", address);
-            // println!("size: {}", size);
-            
-            let mut data = vec![0; size];
-
-            if let Err(_) = self.reader.seek(std::io::SeekFrom::Start(address)) {
-                return Err("Error seeking frame data");
-            }
-            if let Err(_) = self.reader.read_exact(&mut data) {
-                return Err("Error reading frame data");
-            }
-
-            Ok(self.decode_dxt(data))
+        if let Err(_) = self.reader.seek(std::io::SeekFrom::Start(address)) {
+            return Err("Error seeking frame data");
         }
+        if let Err(_) = self.reader.read_exact(&mut data) {
+            return Err("Error reading frame data");
+        }
+
+        Ok(self.decode_dxt(data))
     }
 
     pub fn read_frame_at(&mut self, duration: std::time::Duration) -> Result<Vec<u32>, &'static str> {
@@ -313,7 +339,7 @@ mod tests {
 
     #[test]
     fn header_read() {
-        let data = vec![
+        let header_data: Vec<u8> = vec![
             0x02, 0x00, 0x00, 0x00, // width
             0x02, 0x00, 0x00, 0x00, // height
             0x02, 0x00, 0x00, 0x00, // frame count
@@ -321,6 +347,23 @@ mod tests {
             0x01, 0x00, 0x00, 0x00, // format
             0x04, 0x00, 0x00, 0x00, // frame bytes
         ];
+        let frame_data: Vec<u8> = vec![
+            0x00, 0x00, 0x00, 0x00, // 0
+            0x00, 0x00, 0x00, 0x00, // 1
+            0x00, 0x00, 0x00, 0x00, // 2
+            0x00, 0x00, 0x00, 0x00, // 3
+        ];
+        let address_size_blocks = vec![
+            GVAddressSizeBlock { address: header_data.len() as u64, size: frame_data.len() as u64 },
+            GVAddressSizeBlock { address: header_data.len() as u64 + frame_data.len() as u64, size: frame_data.len() as u64 },
+        ];
+        let mut data = header_data.clone();
+        data.extend_from_slice(&frame_data);
+        data.extend_from_slice(&frame_data);
+        data.extend_from_slice(&address_size_blocks[0].address.to_le_bytes());
+        data.extend_from_slice(&address_size_blocks[0].size.to_le_bytes());
+        data.extend_from_slice(&address_size_blocks[1].address.to_le_bytes());
+        data.extend_from_slice(&address_size_blocks[1].size.to_le_bytes());
         let mut reader = Cursor::new(data);
         let video = GVVideo::load(&mut reader);
         assert_eq!(video.header.width, 2);
