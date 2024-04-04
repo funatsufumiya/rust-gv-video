@@ -386,7 +386,7 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
         self.header.height
     }
 
-    pub fn get_size(&self) -> (u32, u32) {
+    pub fn get_resolution(&self) -> (u32, u32) {
         (self.header.width, self.header.height)
     }
 
