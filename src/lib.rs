@@ -91,7 +91,7 @@ pub fn get_alpha_from_frame(frame: &Vec<u32>, x: usize, y: usize, width: usize) 
     get_alpha(frame[x + y * width])
 }
 
-/// Vec<u32>'s u32 is showing ARGB as little endian, this convert it to RGBA u8
+/// Vec<u32>'s u32 is showing ARGB as little endian (BGRA), this convert it to RGBA u8
 /// ex: [0xFFAABBCC, 0xFFDDEE88] -> [0xAA, 0xBB, 0xCC, 0xFF, 0xDD, 0xEE, 0x88, 0xFF]
 pub fn get_rgba_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
     // FIXME: more efficient way?
@@ -105,7 +105,7 @@ pub fn get_rgba_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
     result
 }
 
-/// Vec<u32>'s u32 is showing ARGB as little endian, this convert it to RGB u8
+/// Vec<u32>'s u32 is showing ARGB as little endian (BGRA), this convert it to RGB u8
 /// ex: [0xFFAABBCC, 0xFFDDEE88] -> [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0x88]
 pub fn get_rgb_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
     // FIXME: more efficient way?
@@ -118,7 +118,8 @@ pub fn get_rgb_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
     result
 }
 
-// faster but unsafe
+/// BGRA u32 -> BGRA u8
+/// faster but unsafe
 pub fn to_vec_u8_unsafe(mut frame: Vec<u32>) -> Vec<u8> {
     // https://stackoverflow.com/questions/49690459/converting-a-vecu32-to-vecu8-in-place-and-with-minimal-overhead
     let vec8 = unsafe {
@@ -136,6 +137,12 @@ pub fn to_vec_u8_unsafe(mut frame: Vec<u32>) -> Vec<u8> {
     };
 
     vec8
+}
+
+/// BGRA u32 -> BGRA u8
+/// faster but unsafe
+pub fn get_bgra_vec_from_frame(frame: Vec<u32>) -> Vec<u8> {
+    to_vec_u8_unsafe(frame)
 }
 
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
