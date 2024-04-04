@@ -12,7 +12,7 @@
 // eof - (frame count) * 16: [(uint64_t, uint64_t)..<frame count] (address, size) of lz4, address is zero based from file head
 //
 
-use std::{fs::File, io::{BufReader, Read, Seek}};
+use std::{fs::File, io::{BufReader, Read, Seek}, mem};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use texture2ddecoder;
@@ -116,6 +116,26 @@ pub fn get_rgb_vec_from_frame(frame: &Vec<u32>) -> Vec<u8> {
         result.push((color >> 0) as u8);
     }
     result
+}
+
+// faster but unsafe
+pub fn to_vec_u8_unsafe(mut frame: Vec<u32>) -> Vec<u8> {
+    // https://stackoverflow.com/questions/49690459/converting-a-vecu32-to-vecu8-in-place-and-with-minimal-overhead
+    let vec8 = unsafe {
+        let ratio = mem::size_of::<u32>() / mem::size_of::<u8>();
+
+        let length = frame.len() * ratio;
+        let capacity = frame.capacity() * ratio;
+        let ptr = frame.as_mut_ptr() as *mut u8;
+
+        // Don't run the destructor for vec32
+        mem::forget(frame);
+
+        // Construct new Vec
+        Vec::from_raw_parts(ptr, length, capacity)
+    };
+
+    vec8
 }
 
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
