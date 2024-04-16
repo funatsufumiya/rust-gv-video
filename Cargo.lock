@@ -14,6 +14,7 @@ version = "0.1.7"
 dependencies = [
  "byteorder",
  "lz4_flex",
+ "paste",
  "texture2ddecoder",
 ]
 
@@ -31,8 +32,9 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "texture2ddecoder"
-version = "0.0.6"
-source = "git+https://github.com/autergame/texture2ddecoder?rev=6a5e8ea#6a5e8eaa8a146a0ed117fc245ebfbefa06abe8a5"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54f0e5ca5dceb9b44d0f376de51782277c25fb42ffe1dad08d847f3a156d26d9"
 dependencies = [
  "paste",
 ]

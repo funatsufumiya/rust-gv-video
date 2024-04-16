@@ -12,6 +12,9 @@
 // eof - (frame count) * 16: [(uint64_t, uint64_t)..<frame count] (address, size) of lz4, address is zero based from file head
 //
 
+
+mod bc2_decoder;
+
 use std::{fs::File, io::{BufReader, Read, Seek}, mem};
 
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -241,7 +244,8 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
                 }
             }
             GVFormat::DXT3 => {
-                let res = texture2ddecoder::decode_bc2(&data, width, height, &mut result);
+                // let res = texture2ddecoder::decode_bc2(&data, width, height, &mut result);
+                let res = bc2_decoder::decode_bc2(&data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding DXT3: {:?}", res.err().unwrap());
                 }else{
@@ -286,7 +290,7 @@ impl<Reader: Read + Seek> GVVideo<Reader> {
                 }
             }
             GVFormat::DXT3 => {
-                let res = texture2ddecoder::decode_bc2(&lz4_decoded_data, width, height, &mut result);
+                let res = bc2_decoder::decode_bc2(&lz4_decoded_data, width, height, &mut result);
                 if res.is_err() {
                     panic!("Error decoding DXT3: {:?}", res.err().unwrap());
                 }else{

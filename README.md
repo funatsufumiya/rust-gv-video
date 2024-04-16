@@ -2,9 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/gv_video.svg)](https://crates.io/crates/gv_video)
 [![Docs.rs](https://docs.rs/gv_video/badge.svg)](https://docs.rs/gv_video)
-<!-- [![License](https://img.shields.io/crates/l/gv_video.svg)](LICENSE) -->
-
-(***NOTE***: if you looking for crate.io, currently not able to publish because of git dependency issue (because using [ texture2ddecoder fork for BC2 texture](https://github.com/autergame/texture2ddecoder)). Please use git dependency for now.)
+[![License](https://img.shields.io/crates/l/gv_video.svg)](LICENSE)
 
 Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/ofxExtremeGpuVideo#binary-file-format-gv decoder for Rust.
 
