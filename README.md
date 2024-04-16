@@ -24,3 +24,7 @@ Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/of
 24: raw frame storage (lz4 compressed)
 eof - (frame count) * 16: [(uint64_t, uint64_t)..<frame count] (address, size) of lz4, address is zero based from file head
 ```
+
+## Credits
+
+- `decode_bc2_alpha`, `decode_bc2_block` functions in `bc2_decoder` included from https://github.com/autergame/texture2ddecoder/commit/6a5e8eaa8a146a0ed117fc245ebfbefa06abe8a5, dual licensed under MIT and Apache-2.0.
