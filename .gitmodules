@@ -1,0 +1,3 @@
+[submodule "texture2ddecoder"]
+	path = texture2ddecoder
+	url = https://github.com/autergame/texture2ddecoder
