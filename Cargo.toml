@@ -11,5 +11,4 @@ license = "Zlib"
 byteorder = "1.5.0"
 lz4_flex = { version = "0.11", default-features = false }
 # texture2ddecoder = { version = "0.0.5" }
-# texture2ddecoder = { git = "https://github.com/autergame/texture2ddecoder", rev = "6a5e8ea", version = "0.0.6" } # for bc2 decode
-texture2ddecoder = { path = "./texture2ddecoder", version = "0.0.6" } # for bc2 decode
+texture2ddecoder = { git = "https://github.com/autergame/texture2ddecoder", rev = "6a5e8ea", version = "0.0.6" } # for bc2 decode

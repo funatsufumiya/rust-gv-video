@@ -32,6 +32,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 [[package]]
 name = "texture2ddecoder"
 version = "0.0.6"
+source = "git+https://github.com/autergame/texture2ddecoder?rev=6a5e8ea#6a5e8eaa8a146a0ed117fc245ebfbefa06abe8a5"
 dependencies = [
  "paste",
 ]
