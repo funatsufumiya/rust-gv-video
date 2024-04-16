@@ -6,7 +6,7 @@
 
 Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/ofxExtremeGpuVideo#binary-file-format-gv decoder for Rust.
 
-- This crate provides both `BC1(DXT1)/BC2(DXT3)/BC3(DXT5)/BC7` decoder and LZ4 decompressor, but recommended **NOT** to use `BC1/BC2/BC3/BC7` decoder because it's CPU processing (slow).
+- This crate provides both `BC1(DXT1)/BC2(DXT3)/BC3(DXT5)/BC7` decoder (using `texture2ddecoder` crate) and LZ4 decompressor (using `lz4_flex` crate), but recommended **NOT** to use `BC1/BC2/BC3/BC7` decoder because it's CPU processing (slow).
   - you can get LZ4 decompressed (not BC decoded) frame with `read_frame_compressed(index)` and `read_frame_compressed_at(time)` methods. (fastest way for GPU texture upload)
   - you can get BC decoded and LZ4 decompressed frame with `read_frame(index)` and `read_frame_at(time)` methods. (easy for BGRA texture checking and CPU processing)
 - This crate **NOT** provides movie player function. Please use like [bevy_movie_player](https://github.com/funatsufumiya/bevy_movie_player) crate for it (as an alternative of [ofxExtremeGpuVideo](https://github.com/Ushio/ofxExtremeGpuVideo) for [openFrameworks](https://openframeworks.cc/)).
