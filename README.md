@@ -1,5 +1,9 @@
 # GV Video Decoder for Rust
 
+[![Crates.io](https://img.shields.io/crates/v/gv_video.svg)](https://crates.io/crates/gv_video)
+[![Docs.rs](https://docs.rs/gv_video/badge.svg)](https://docs.rs/gv_video)
+[![License](https://img.shields.io/crates/l/gv_video.svg)](LICENSE)
+
 Port of GV video (Extreme Gpu Friendly Video Format) https://github.com/Ushio/ofxExtremeGpuVideo#binary-file-format-gv decoder for Rust.
 
 - This crate provides both `BC1(DXT1)/BC2(DXT3)/BC3(DXT5)/BC7` decoder and LZ4 decompressor, but recommended **NOT** to use `BC1/BC2/BC3/BC7` decoder because it's CPU processing (slow).
