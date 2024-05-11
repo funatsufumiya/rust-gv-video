@@ -150,9 +150,27 @@ pub fn to_vec_u8_unsafe(mut frame: Vec<u32>) -> Vec<u8> {
 }
 
 /// BGRA u32 -> BGRA u8
-/// faster but unsafe
+/// slower but safe
+pub fn to_vec_u8_safe(frame: Vec<u32>) -> Vec<u8> {
+    let mut result = Vec::with_capacity(frame.len() * 4);
+    for color in frame {
+        result.push((color >> 0) as u8);
+        result.push((color >> 8) as u8);
+        result.push((color >> 16) as u8);
+        result.push((color >> 24) as u8);
+    }
+    result
+}
+
+
+/// BGRA u32 -> BGRA u8
 pub fn get_bgra_vec_from_frame(frame: Vec<u32>) -> Vec<u8> {
-    to_vec_u8_unsafe(frame)
+    // #[cfg(feature = "unsafe")]
+    if cfg!(feature = "unsafe") {
+        to_vec_u8_unsafe(frame)
+    } else {
+        to_vec_u8_safe(frame)
+    }
 }
 
 pub fn read_header<Reader>(reader: &mut Reader) -> GVHeader where Reader: std::io::Read {
