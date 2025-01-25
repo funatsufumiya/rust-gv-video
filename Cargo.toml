@@ -1,6 +1,6 @@
 [package]
 name = "gv_video"
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
 description = "GV Video Decoder for Rust"
 license = "Zlib"
